@@ -1,86 +1,60 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Layout for a single list item that displays an news -->
+<?xml version="1.0" encoding="utf-8"?><!-- Layout for a single list item that displays an news -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingEnd="16dp"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:paddingStart="16dp">
+    style="@style/NewsListWrapper">
 
+    <!-- Section Name & Date/Time wrapper -->
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingTop="16dp"
-        android:paddingBottom="8dp"
-        android:weightSum="6">
+        android:id="@+id/section_date_wrapper"
+        style="@style/NewsListSectionDateWrapper">
+
+        <!-- Section Name -->
         <TextView
             android:id="@+id/section_name"
-            android:layout_width="0dp"
-            android:layout_weight="3"
-            android:layout_height="36dp"
-            android:layout_gravity="center_vertical"
-            android:fontFamily="sans-serif-medium"
-            android:textColor="@android:color/black"
-            android:textSize="16sp"
-            android:textAllCaps="true"
+            style="@style/NewsListSection"
             tools:text="Technology" />
 
+        <!-- Date/Time wrapper -->
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_weight="3"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginLeft="16dp"
-            android:layout_marginStart="16dp"
-            android:orientation="vertical">
+            android:id="@+id/date_time_wrapper"
+            style="@style/NewsListDateTimeWrapper">
 
+            <!-- Date -->
             <TextView
                 android:id="@+id/date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:textColor="@color/textColorNewsDetails"
-                android:textSize="12sp"
+                style="@style/NewsListDate"
                 tools:text="Mar 6, 2010" />
 
+            <!-- Time -->
             <TextView
                 android:id="@+id/time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:textColor="@color/textColorNewsDetails"
-                android:textSize="12sp"
+                style="@style/NewsListTime"
                 tools:text="3:00 PM" />
 
         </LinearLayout>
     </LinearLayout>
 
+    <!-- Image/Title wrapper -->
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingBottom="16dp"
-        android:weightSum="6">
+        android:id="@+id/image_title_wrapper"
+        style="@style/NewsListImageTitleWrapper">
+
+        <!-- Image -->
         <ImageView
             android:id="@+id/image"
-            android:layout_width="0dp"
-            android:layout_weight="2"
-            android:layout_height="wrap_content"
-            android:paddingEnd="16dp"
-            android:paddingRight="16dp" />
+            style="@style/NewsListImage"
+            android:contentDescription="@string/news_image"/>
 
+        <!-- Title -->
         <TextView
             android:id="@+id/title"
-            android:layout_width="0dp"
-            android:layout_weight="4"
-            android:layout_height="72dp"
-            android:fontFamily="sans-serif-medium"
-            android:textColor="@android:color/black"
-            android:textSize="16sp"
+            style="@style/NewsListTitle"
             tools:text="Example News" />
     </LinearLayout>
+
+    <!-- Author name -->
+    <TextView
+        android:id="@+id/author_name"
+        style="@style/NewsListAuthor"
+        tools:text="John Smith" />
 </LinearLayout>

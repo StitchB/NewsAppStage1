@@ -1,23 +1,12 @@
 package com.example.android.newsappstage1;
 
-import android.app.LoaderManager;
-import android.content.Context;
-import android.content.Loader;
-
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,22 +20,15 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
- * Helper methods related to requesting and receiving news data from USGS.
+ * Helper methods related to requesting and receiving news data from the Guardian.
  */
-public final class QueryUtils {
+final class QueryUtils {
 
-    /** Context */
-    private static Context mContext;
-
-    /** Image */
-    private static String image = "http://via.placeholder.com/500x500";
-
-    /** Tag for the log messages */
+    /**
+     * Tag for the log messages
+     */
     private static final String LOG_TAG = QueryUtils.class.getSimpleName();
 
     /**
@@ -60,10 +42,7 @@ public final class QueryUtils {
     /**
      * Query the Guardian dataset and return a list of {@link News} objects.
      */
-    public static List<News> fetchNewsData(Context context, String requestUrl) {
-
-        //Context
-        mContext = context;
+    public static List<News> fetchNewsData(String requestUrl) {
 
         // Create URL object
         URL url = createUrl(requestUrl);
@@ -76,11 +55,8 @@ public final class QueryUtils {
             Log.e(LOG_TAG, "Problem making the HTTP request.", e);
         }
 
-        // Extract relevant fields from the JSON response and create a list of {@link News}
-        List<News> newsList = extractFeatureFromJson(jsonResponse);
-
-        // Return the list of {@link News}
-        return newsList;
+        // Extract relevant fields from the JSON response and create a list of {@link News} (and return this data at the end)
+        return extractFeatureFromJson(jsonResponse);
     }
 
     /**
@@ -194,10 +170,33 @@ public final class QueryUtils {
                 // Extract the value for the key called "sectionName"
                 String sectionName = currentNews.getString("sectionName");
 
+                //"Tags" element
+                JSONArray tags = currentNews.getJSONArray("tags");
+
+                //If "tags" array is not null
+                String authorFullName = "";
+                if (!tags.isNull(0)) {
+                    JSONObject currentTag = tags.getJSONObject(0);
+
+                    //Author first name
+                    String authorFirstName = !currentTag.isNull("firstName") ? currentTag.getString("firstName") : "";
+
+                    //Author last name
+                    String authorLastName = !currentTag.isNull("lastName") ? currentTag.getString("lastName") : "";
+
+                    //Author full name
+                    authorFullName = StringUtils.capitalize(authorFirstName.toLowerCase().trim()) + " " + StringUtils.capitalize(authorLastName.toLowerCase().trim());
+                    if (authorFirstName.trim() != "" || authorLastName.trim() != "") {
+                        authorFullName = ("Author: ").concat(authorFullName);
+                    } else {
+                        authorFullName = "";
+                    }
+                }
+
                 // Extract the value for the key called "webPublicationDate"
                 String originalPublicationDate = currentNews.getString("webPublicationDate");
 
-                String defaultTimezone = TimeZone.getDefault().getID();
+                //Format publication date
                 Date publicationDate = null;
                 try {
                     publicationDate = (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")).parse(originalPublicationDate);
@@ -212,11 +211,14 @@ public final class QueryUtils {
                 String url = currentNews.getString("webUrl");
 
                 // Extract the value for the key called "fields" -> "thumbnail"
-                image = currentNews.getJSONObject("fields").getString("thumbnail");
+                String image = currentNews.getJSONObject("fields").getString("thumbnail");
+                if(image == "") {
+                    image = "http://via.placeholder.com/500x500";
+                }
 
                 // Create a new {@link News} object with the title, section name, publication date,
                 // and url from the JSON response.
-                News news = new News(title, sectionName, publicationDate, url, image);
+                News news = new News(title, sectionName, authorFullName, publicationDate, url, image);
 
                 // Add the new {@link News} to the list of news.
                 newsList.add(news);

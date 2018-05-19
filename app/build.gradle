@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.example.android.newsappstage1"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -31,7 +31,9 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
-    compile group: 'commons-io', name: 'commons-io', version: '2.0.1' //Apache commons
+    compile group: 'commons-io', name: 'commons-io', version: '2.4' //Apache commons
+
+    compile 'org.apache.commons:commons-lang3:3.4' //Commons lang
 
     compile 'org.jsoup:jsoup:1.10.3' // jsoup HTML parser library @ https://jsoup.org/
 }
