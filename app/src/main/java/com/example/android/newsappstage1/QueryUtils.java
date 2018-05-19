@@ -211,7 +211,8 @@ public final class QueryUtils {
                 // Extract the value for the key called "url"
                 String url = currentNews.getString("webUrl");
 
-                image = downloadImageFromPath(url);
+                // Extract the value for the key called "fields" -> "thumbnail"
+                image = currentNews.getJSONObject("fields").getString("thumbnail");
 
                 // Create a new {@link News} object with the title, section name, publication date,
                 // and url from the JSON response.
@@ -229,55 +230,5 @@ public final class QueryUtils {
 
         // Return the list of news
         return newsList;
-    }
-
-    public static String downloadImageFromPath(String path){
-        InputStream response;
-        int responseCode;
-        String newsImage = image;
-        try{
-
-            URL url = new URL(path);
-            HttpURLConnection con = (HttpURLConnection)url.openConnection();
-            con.setDoInput(true);
-            con.connect();
-            responseCode = con.getResponseCode();
-            if(responseCode == HttpURLConnection.HTTP_OK)
-            {
-                //download
-                response = con.getInputStream();
-                String htmlResponse = IOUtils.toString(response);
-
-                // Extract image url from the news website html
-                newsImage = extractImageFromHtml(htmlResponse);
-
-                response.close();
-            }
-
-        }
-        catch(Exception ex){
-            Log.e("Exception", ex.toString());
-        }
-
-
-        return newsImage;
-    }
-
-    /**
-     * Return a news image url
-     */
-    private static String extractImageFromHtml(String newsHtml) {
-        // If the html string is empty or null, then return early.
-        if (TextUtils.isEmpty(newsHtml)) {
-            return null;
-        }
-
-        //Find main news image using Jsoup
-        Document doc = Jsoup.parse(newsHtml);
-        Elements imgTag = doc.select("img.maxed.responsive-img");
-        String imageUrl = imgTag.first().attr("src");
-
-        // Return the news image URL
-        return imageUrl;
     }
 }
