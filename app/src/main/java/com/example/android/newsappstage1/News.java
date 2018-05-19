@@ -1,5 +1,7 @@
 package com.example.android.newsappstage1;
 
+import java.util.Date;
+
 /**
  * An {@link News} object contains information related to a single news.
  */
@@ -12,7 +14,7 @@ public class News {
     private String newsSectionName;
 
     /** Publication date of the news */
-    private String newsPublicationDate;
+    private Date newsPublicationDate;
 
     /** Website URL of the news */
     private String newsUrl;
@@ -29,7 +31,7 @@ public class News {
      * @param url is the website URL to find more details about the news
      * @param image is the image for the news
      */
-    public News(String title, String section, String publicationDate, String url, String image) {
+    public News(String title, String section, Date publicationDate, String url, String image) {
         newsTitle = title;
         newsSectionName = section;
         newsPublicationDate = publicationDate;
@@ -52,7 +54,7 @@ public class News {
     /**
      * Returns the publication date of the news.
      */
-    public String getPublicationDate() {
+    public Date getPublicationDate() {
         return newsPublicationDate;
     }
 

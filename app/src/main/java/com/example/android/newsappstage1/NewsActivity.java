@@ -27,9 +27,6 @@ public class NewsActivity extends AppCompatActivity {
     //Context
     private Context mContext;
 
-    // Get a reference to the LoaderManager, in order to interact with loaders.
-    private LoaderManager loaderManager = getLoaderManager();
-
     /**
      * Constant value for the news loader ID. We can choose any integer.
      * This really only comes into play if you're using multiple loaders.
@@ -48,7 +45,7 @@ public class NewsActivity extends AppCompatActivity {
         @Override
         public Loader<List<News>> onCreateLoader(int i, Bundle bundle) {
             // Create a new loader for the given URL
-            return new NewsLoader(mContext, loaderManager, REQUEST_URL);
+            return new NewsLoader(mContext, REQUEST_URL);
         }
 
         @Override
@@ -126,6 +123,9 @@ public class NewsActivity extends AppCompatActivity {
 
         // If there is a network connection, fetch data
         if (networkInfo != null && networkInfo.isConnected()) {
+            // Get a reference to the LoaderManager, in order to interact with loaders.
+            LoaderManager loaderManager = getLoaderManager();
+
             // Initialize the loaders. Pass in the int ID constant defined above and pass in null for
             // the bundle. Pass in this activity for the LoaderCallbacks parameter (which is valid
             // because this activity implements the LoaderCallbacks interface).

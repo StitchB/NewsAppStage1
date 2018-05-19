@@ -16,6 +16,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * An {@link NewsAdapter} knows how to create a list item layout for each news
@@ -69,18 +70,18 @@ public class NewsAdapter extends ArrayAdapter<News> {
         sectionNameView.setText(currentNews.getSectionName());
 
         // Find the TextView with view ID date
-        TextView dateView = listItemView.findViewById(R.id.date);
+        TextView dateView = (TextView) listItemView.findViewById(R.id.date);
         // Format the date string (i.e. "Mar 3, 1984")
-        //String formattedDate = formatDate(currentNews.getPublicationDate());
-        // Display the date of the current news in that TextView
-        dateView.setText(currentNews.getPublicationDate());
+        String formattedDate = formatDate(currentNews.getPublicationDate());
+        // Display the date of the current earthquake in that TextView
+        dateView.setText(formattedDate);
 
         // Find the TextView with view ID time
-        /*TextView timeView = listItemView.findViewById(R.id.time);
+        TextView timeView = (TextView) listItemView.findViewById(R.id.time);
         // Format the time string (i.e. "4:30PM")
         String formattedTime = formatTime(currentNews.getPublicationDate());
-        // Display the time of the current news in that TextView
-        timeView.setText(formattedTime);*/
+        // Display the time of the current earthquake in that TextView
+        timeView.setText(formattedTime);
 
         // Return the list item view that is now showing the appropriate data
         return listItemView;

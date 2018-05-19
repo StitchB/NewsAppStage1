@@ -3,6 +3,7 @@ package com.example.android.newsappstage1;
 import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Loader;
+
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -10,9 +11,13 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
+import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,8 +27,13 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Helper methods related to requesting and receiving news data from USGS.
@@ -33,20 +43,11 @@ public final class QueryUtils {
     /** Context */
     private static Context mContext;
 
-    /** Loader Manager */
-    private static LoaderManager mLoaderManager;
-
     /** Image */
     private static String image = "http://via.placeholder.com/500x500";
 
     /** Tag for the log messages */
     private static final String LOG_TAG = QueryUtils.class.getSimpleName();
-
-    /**
-     * Constant value for the news loader ID. We can choose any integer.
-     * This really only comes into play if you're using multiple loaders.
-     */
-    private static final int IMAGE_LOADER_ID = 1;
 
     /**
      * Create a private constructor because no one should ever create a {@link QueryUtils} object.
@@ -57,15 +58,12 @@ public final class QueryUtils {
     }
 
     /**
-     * Query the USGS dataset and return a list of {@link News} objects.
+     * Query the Guardian dataset and return a list of {@link News} objects.
      */
-    public static List<News> fetchNewsData(Context context, LoaderManager loaderManager, String requestUrl) {
+    public static List<News> fetchNewsData(Context context, String requestUrl) {
 
         //Context
         mContext = context;
-
-        //Context
-        mLoaderManager = loaderManager;
 
         // Create URL object
         URL url = createUrl(requestUrl);
@@ -177,14 +175,6 @@ public final class QueryUtils {
         // is formatted, a JSONException exception object will be thrown.
         // Catch the exception so the app doesn't crash, and print the error message to the logs.
         try {
-
-            // Get a reference to the ConnectivityManager to check state of network connectivity
-            ConnectivityManager connMgr = (ConnectivityManager)
-                    mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-            // Get details on the currently active default data network
-            NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-
             // Create a JSONObject from the JSON response string
             JSONObject baseJsonResponse = new JSONObject(newsJSON);
 
@@ -205,60 +195,23 @@ public final class QueryUtils {
                 String sectionName = currentNews.getString("sectionName");
 
                 // Extract the value for the key called "webPublicationDate"
-                String publicationDate = currentNews.getString("webPublicationDate");
+                String originalPublicationDate = currentNews.getString("webPublicationDate");
+
+                String defaultTimezone = TimeZone.getDefault().getID();
+                Date publicationDate = null;
+                try {
+                    publicationDate = (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")).parse(originalPublicationDate);
+                } catch (Exception e) {
+                    // If an error is thrown when executing the above statement in the "try" block,
+                    // catch the exception here, so the app doesn't crash. Print a log message
+                    // with the message from the exception.
+                    Log.e("QueryUtils", "Problem parsing the news date", e);
+                }
 
                 // Extract the value for the key called "url"
                 String url = currentNews.getString("webUrl");
 
-                //News image loader
-                LoaderManager.LoaderCallbacks<String> imageLoader
-                        = new LoaderManager.LoaderCallbacks<String>() {
-                    @Override
-                    public Loader<String> onCreateLoader(int i, Bundle bundle) {
-                        // Create a new loader for the given website URL
-                        return new ImageLoader(mContext, "https://www.theguardian.com/books/2018/may/13/connect-julian-gough-review"); //TODO pass correct url
-                    }
-
-                    @Override
-                    public void onLoadFinished(Loader<String> loader, String imageUrl) {
-                        // Use temporary image TODO
-                        //mEmptyStateTextView.setText(R.string.no_news);
-
-                        // Clear the adapter of previous news data
-                        //mAdapter.clear();
-
-                        // Update to correct image
-                        if (imageUrl != null && !imageUrl.isEmpty()) {
-                            image = imageUrl;
-                        }
-                    }
-
-                    @Override
-                    public void onLoaderReset(Loader<String> loader) {
-
-                    }
-                };
-
-                // If there is a network connection, fetch data
-                if (networkInfo != null && networkInfo.isConnected()) {
-                    // Get a reference to the LoaderManager, in order to interact with loaders.
-                    LoaderManager loaderManager = mLoaderManager;
-
-                    // Initialize the loaders. Pass in the int ID constant defined above and pass in null for
-                    // the bundle. Pass in this activity for the LoaderCallbacks parameter (which is valid
-                    // because this activity implements the LoaderCallbacks interface).
-                    loaderManager.initLoader(IMAGE_LOADER_ID, null, imageLoader);
-
-                    loaderManager.destroyLoader(IMAGE_LOADER_ID);
-                } else {
-                    // Otherwise, display error
-                    // First, hide loading indicator so error message will be visible
-                    /*View loadingIndicator = findViewById(R.id.loading_indicator);
-                    loadingIndicator.setVisibility(View.GONE);
-
-                    // Update empty state with no connection error message
-                    mEmptyStateTextView.setText(R.string.no_internet_connection);*/ //TODO ?
-                }
+                image = downloadImageFromPath(url);
 
                 // Create a new {@link News} object with the title, section name, publication date,
                 // and url from the JSON response.
@@ -278,4 +231,53 @@ public final class QueryUtils {
         return newsList;
     }
 
+    public static String downloadImageFromPath(String path){
+        InputStream response;
+        int responseCode;
+        String newsImage = image;
+        try{
+
+            URL url = new URL(path);
+            HttpURLConnection con = (HttpURLConnection)url.openConnection();
+            con.setDoInput(true);
+            con.connect();
+            responseCode = con.getResponseCode();
+            if(responseCode == HttpURLConnection.HTTP_OK)
+            {
+                //download
+                response = con.getInputStream();
+                String htmlResponse = IOUtils.toString(response);
+
+                // Extract image url from the news website html
+                newsImage = extractImageFromHtml(htmlResponse);
+
+                response.close();
+            }
+
+        }
+        catch(Exception ex){
+            Log.e("Exception", ex.toString());
+        }
+
+
+        return newsImage;
+    }
+
+    /**
+     * Return a news image url
+     */
+    private static String extractImageFromHtml(String newsHtml) {
+        // If the html string is empty or null, then return early.
+        if (TextUtils.isEmpty(newsHtml)) {
+            return null;
+        }
+
+        //Find main news image using Jsoup
+        Document doc = Jsoup.parse(newsHtml);
+        Elements imgTag = doc.select("img.maxed.responsive-img");
+        String imageUrl = imgTag.first().attr("src");
+
+        // Return the news image URL
+        return imageUrl;
+    }
 }

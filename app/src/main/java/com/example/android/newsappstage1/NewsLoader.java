@@ -15,9 +15,6 @@ public class NewsLoader extends AsyncTaskLoader<List<News>> {
     /** Context */
     private Context mContext;
 
-    /** Loader Manager */
-    private LoaderManager mLoaderManager;
-
     /** Query URL */
     private String mUrl;
 
@@ -27,10 +24,9 @@ public class NewsLoader extends AsyncTaskLoader<List<News>> {
      * @param context of the activity
      * @param url to load data from
      */
-    public NewsLoader(Context context, LoaderManager loaderManager, String url) {
+    public NewsLoader(Context context, String url) {
         super(context);
         mContext = context;
-        mLoaderManager = loaderManager;
         mUrl = url;
     }
 
@@ -49,7 +45,7 @@ public class NewsLoader extends AsyncTaskLoader<List<News>> {
         }
 
         // Perform the network request, parse the response, and extract a list of news.
-        List<News> news = QueryUtils.fetchNewsData(mContext, mLoaderManager, mUrl);
+        List<News> news = QueryUtils.fetchNewsData(mContext, mUrl);
         return news;
     }
 }
